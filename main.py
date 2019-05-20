@@ -1,13 +1,9 @@
-##
-##	TODO: Clean up and deduplicate code
-##
 import boto3
-import tempfile
-
 import telegram
 from telegram.ext import MessageHandler, CommandHandler, Filters, Updater
 import logging
 import atexit
+from io import BytesIO
 
 from config import BOT_TOKEN, BOT_VOICE
 
@@ -18,69 +14,75 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 updater = Updater(token=BOT_TOKEN)
 dispatcher = updater.dispatcher
 
+class Record:
+    __slots__ = ("message", "chat_id", "user", "bot")
+
+    def __init__(self, bot, update):
+        self.message = update.message
+        self.chat_id = self.message.chat_id
+        self.user = self.message.from_user
+        self.bot = bot
+
+    def tts(self, args):
+
+        message_text = " ".join(args)
+
+        return self.get_audio(message_text)
+      
+    def say(self, args):
+
+        message_text = " ".join(args)
+
+        fullname = " ".join(name for name in (
+            self.user.first_name, self.user.last_name
+            ) if name != None
+        )
+
+        return self.get_audio(f"{fullname} says, {message_text}")
+
+
+    def get_audio(self, message_text):
+
+        self.bot.send_chat_action(chat_id=self.chat_id, action=telegram.ChatAction.RECORD_AUDIO)
+
+        polly_client = boto3.Session(region_name='us-east-2').client('polly')
+
+        return polly_client.synthesize_speech(VoiceId=BOT_VOICE,
+                    OutputFormat='mp3',
+                    Text = message_text)
 
 def start(bot, update):
     bot.send_message(chat_id=update.message.chat_id, text="Hi! I can talk!")
-
+ 
 def say(bot, update, args):
-    chat_id = update.message.chat_id
+    record = Record(bot, update)
+    audio = record.say(args)
 
-    message_text = " ".join(args)
+    audioStream = audio.get("AudioStream")
 
+    if audioStream is not None:
 
-    fullname = ""
+        stream = BytesIO(audioStream.read())
 
-    for name in [update.message.from_user.first_name, update.message.from_user.last_name]:
-        if name != None:
-            fullname += name
-
-    #bot is typing
-    bot.send_chat_action(chat_id=chat_id, action=telegram.ChatAction.RECORD_AUDIO)
-
-    reply_to_message_id = update.message.message_id
-
-    temp = tempfile.mkstemp(suffix=".mp3")
-
-    polly_client = boto3.Session(region_name='us-east-2').client('polly')
-
-    response = polly_client.synthesize_speech(VoiceId=BOT_VOICE,
-                OutputFormat='mp3',
-                Text = f"{fullname} says, \"{message_text}\"")
-
-    fin = open(temp[1], 'wb')
-    fin.write(response['AudioStream'].read())
-    fin.close()
-
-    fout = open(temp[1], 'rb')
-    bot.send_voice(chat_id, fout, reply_to_message_id=reply_to_message_id)
-    fout.close()
+        bot.send_voice(
+            record.chat_id, stream, 
+            reply_to_message_id=record.message.message_id
+        )
 
 def tts(bot, update, args):
-    chat_id = update.message.chat_id
+    record = Record(bot, update)
+    audio = record.tts(args)
 
-    message_text = " ".join(args)
+    audioStream = audio.get("AudioStream")
 
-    #bot is typing
-    bot.send_chat_action(chat_id=chat_id, action=telegram.ChatAction.RECORD_AUDIO)
+    if audioStream is not None:
 
-    reply_to_message_id = update.message.message_id
+        stream = BytesIO(audioStream.read())
 
-    temp = tempfile.mkstemp(suffix=".mp3")
-
-    polly_client = boto3.Session(region_name='us-east-2').client('polly')
-
-    response = polly_client.synthesize_speech(VoiceId=BOT_VOICE,
-                OutputFormat='mp3',
-                Text = f"{message_text}")
-
-    fin = open(temp[1], 'wb')
-    fin.write(response['AudioStream'].read())
-    fin.close()
-
-    fout = open(temp[1], 'rb')
-    bot.send_voice(chat_id, fout, reply_to_message_id=reply_to_message_id)
-    fout.close()
-
+        bot.send_voice(
+            record.chat_id, stream, 
+            reply_to_message_id=record.message.message_id
+        )
 
 start_handler = CommandHandler('start', start)
 dispatcher.add_handler(start_handler)
