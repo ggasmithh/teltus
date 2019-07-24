@@ -1,11 +1,12 @@
 import boto3
 import telegram
-from telegram.ext import MessageHandler, CommandHandler, Filters, Updater
+from telegram.ext import CommandHandler, Updater
 import logging
-import atexit
 from io import BytesIO
+from os import environ
 
-from config import BOT_TOKEN, BOT_VOICE
+BOT_TOKEN = environ['BOT_TOKEN']
+BOT_VOICE = environ['BOT_VOICE']
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                      level=logging.INFO)
@@ -15,21 +16,22 @@ updater = Updater(token=BOT_TOKEN)
 dispatcher = updater.dispatcher
 
 class Record:
-    __slots__ = ("message", "chat_id", "user", "bot")
+    __slots__ = ("message", "chat_id", "user", "bot", "audio")
 
     def __init__(self, bot, update):
         self.message = update.message
         self.chat_id = self.message.chat_id
         self.user = self.message.from_user
         self.bot = bot
+        self.audio = None
 
-    def tts(self, args):
+    def set_tts(self, args):
 
         message_text = " ".join(args)
 
-        return self.get_audio(message_text)
+        self.audio = self.get_audio(message_text)
       
-    def say(self, args):
+    def set_say(self, args):
 
         message_text = " ".join(args)
 
@@ -38,7 +40,7 @@ class Record:
             ) if name != None
         )
 
-        return self.get_audio(f"{fullname} says, {message_text}")
+        self.audio = self.get_audio(f"{fullname} says, {message_text}")
 
 
     def get_audio(self, message_text):
@@ -51,38 +53,34 @@ class Record:
                     OutputFormat='mp3',
                     Text = message_text)
 
-def start(bot, update):
-    bot.send_message(chat_id=update.message.chat_id, text="Hi! I can talk!")
- 
-def say(bot, update, args):
-    record = Record(bot, update)
-    audio = record.say(args)
 
-    audioStream = audio.get("AudioStream")
+def audioSender(record):
+    audioStream = record.audio.get("AudioStream")
 
     if audioStream is not None:
 
         stream = BytesIO(audioStream.read())
 
-        bot.send_voice(
+        record.bot.send_voice(
             record.chat_id, stream, 
             reply_to_message_id=record.message.message_id
         )
+
+def start(bot, update):
+    bot.send_message(chat_id=update.message.chat_id, text="Hi! I can talk!")
+
+def say(bot, update, args):
+    record = Record(bot, update)
+    record.set_say(args)
+
+    audioSender(record)
 
 def tts(bot, update, args):
     record = Record(bot, update)
-    audio = record.tts(args)
+    record.set_tts(args)
 
-    audioStream = audio.get("AudioStream")
-
-    if audioStream is not None:
-
-        stream = BytesIO(audioStream.read())
-
-        bot.send_voice(
-            record.chat_id, stream, 
-            reply_to_message_id=record.message.message_id
-        )
+    audioSender(record)
+    
 
 start_handler = CommandHandler('start', start)
 dispatcher.add_handler(start_handler)
@@ -96,8 +94,3 @@ dispatcher.add_handler(tts_handler)
 updater.start_polling()
 
 updater.idle()
-
-
-
-
-
