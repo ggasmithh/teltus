@@ -4,7 +4,7 @@ teltus is a simple Telegram Text-To-Speech bot. It can use the following as spee
 * Google's gTTS engine
 
 ## usage
-Before running, teltus must be configured by setting the following environment variables
+Before running, teltus must be configured by setting the following environment variables. Additionally, the Boto client needs to be set up.
 
 ### ```TELTUS_BACKEND```
 This should be set either to ```polly``` or ```gtts```, for usage with Polly or gTTS, respectively
@@ -14,6 +14,10 @@ For now, voice selection is only supported with the Polly engine. Valid selectio
 
 ### ```TELTUS_TOKEN```
 Your telegram bot token goes here. Get it from BotFather on telegram.
+
+### ```GOOGLE_APPLICATION_CREDENTIALS```
+https://cloud.google.com/text-to-speech/docs/quickstart-client-libraries
+
 
 ---
 
