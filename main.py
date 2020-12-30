@@ -13,8 +13,6 @@ try:
 except:
     TELTUS_VOICE = None
 
-
-
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                      level=logging.INFO)
 
@@ -37,21 +35,19 @@ if TELTUS_BACKEND == 'polly':
     if TELTUS_VOICE not in POLLY_VOICES:
         raise Exception("Invalid voice selection for Polly Backend!")
 
-    def text_to_audio(message_text):
+    def text_to_audio(message_text: str):
         polly_client = boto3.Session(region_name="us-east-2").client('polly')
 
-        return polly_client.synthesize_speech(VoiceId=TELTUS_VOICE,
+        polly_response = polly_client.synthesize_speech(VoiceId=TELTUS_VOICE,
                     OutputFormat='mp3',
                     Text = message_text)
 
-    
+        return polly_response.get("AudioStream")
+
 elif TELTUS_BACKEND == 'gtts':
     from gtts import gTTS
-    
-    #if TELTUS_VOICE not in uhhhh find a list of voices or smthn idk:
-    #    raise Exception("Invalid voice selection for gtts Backend!")
 
-    def text_to_audio(message_text):
+    def text_to_audio(message_text: str):
         fp = BytesIO()
         tts = gTTS(message_text, lang='en')
         tts.write_to_fp(fp)
@@ -61,55 +57,30 @@ elif TELTUS_BACKEND == 'gtts':
 else:
     raise Exception('Invalid backend preference!\nValid backends: polly, gtts')
 
-class Record:
-    __slots__ = ("message", "user", "bot", "audio")
+def start(update: Update, context: CallbackContext) -> None:
+    if update.message.chat_id == TELTUS_CHAT_ID:
+        update.message.reply_text("Hi! I can talk!")
 
-    def __init__(self, bot, update):
-        self.chat_id = TELTUS_CHAT_ID
-        self.message = update.message
-        self.user = self.message.from_user
-        self.bot = bot
-        self.audio = None
+def say(update: Update, context: CallbackContext, args) -> None:
+    if update.message.chat_id == TELTUS_CHAT_ID:
+        context.bot.send_chat_action(chat_id=update.effective_message.chat_id, action=telegram.ChatAction.RECORD_AUDIO)
+        audio = text_to_audio(update.message.text)
 
-    def set_audio(self, args):
-        message_text = " ".join(args)
-        self.audio = self.get_audio(message_text)
+        if audioStream is not None:
+            stream = BytesIO(audio.read())
 
-    def get_audio(self, message_text):
-        self.bot.send_chat_action(chat_id=self.chat_id, action=telegram.ChatAction.RECORD_AUDIO)
+            reply_voice(stream, reply_to_message_id=update.message.message_id)
 
-        return text_to_audio(message_text)
+def main():
+    # Set up the telegram interface
+    updater = Updater(TELTUS_TOKEN, use_context=True)
+    dispatcher = updater.dispatcher
+    dispatcher.add_handler(CommandHandler('start', start))
+    dispatcher.add_handler(CommandHandler('say', say, pass_args=True))
 
+    updater.start_polling()
 
-def audioSender(record):
-    audioStream = record.audio.get("AudioStream")
+    updater.idle()
 
-    if audioStream is not None:
-        stream = BytesIO(audioStream.read())
-
-        record.bot.send_voice(
-            TELTUS_CHAT_ID, stream, 
-            reply_to_message_id=record.message.message_id
-        )
-
-# Set up the telegram interface
-updater = Updater(token=TELTUS_TOKEN)
-
-def start(bot, update):
-    bot.send_message(chat_id=TELTUS_CHAT_ID, text="Hi! I can talk!")
-
-def say(bot, update, args):
-    record = Record(bot, update)
-    record.set_audio(args)
-
-    audioSender(record)
-    
-start_handler = CommandHandler('start', start)
-updater.dispatcher.add_handler(start_handler)
-
-say_handler = CommandHandler('say', say, pass_args=True)
-updater.dispatcher.add_handler(say_handler)
-
-updater.start_polling()
-
-updater.idle()
+if __name__ == '__main__':
+    main()
