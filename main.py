@@ -67,7 +67,7 @@ def say(update: Update, context: CallbackContext) -> None:
         fd, audio_path = text_to_audio(update.message.text)
 
         if audio_path is not None:
-            update.message.reply_voice(audio, reply_to_message_id=update.message.message_id)
+            update.message.reply_voice(audio_path, reply_to_message_id=update.message.message_id)
         
         if fd is not None:
             fd.close()
