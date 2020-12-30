@@ -58,11 +58,11 @@ else:
     raise Exception('Invalid backend preference!\nValid backends: polly, gtts')
 
 def start(update: Update, context: CallbackContext) -> None:
-    if update.message.chat_id == TELTUS_CHAT_ID:
+    if str(update.message.chat_id) == str(TELTUS_CHAT_ID):
         update.message.reply_text("Hi! I can talk!")
 
 def say(update: Update, context: CallbackContext) -> None:
-    if update.message.chat_id == TELTUS_CHAT_ID:
+    if str(update.message.chat_id) == str(TELTUS_CHAT_ID):
         context.bot.send_chat_action(chat_id=update.effective_message.chat_id, action=ChatAction.RECORD_AUDIO)
         audio = text_to_audio(update.message.text)
 
