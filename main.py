@@ -6,6 +6,7 @@ from os import environ
 
 TELTUS_BACKEND = environ['TELTUS_BACKEND']
 TELTUS_TOKEN = environ['TELTUS_TOKEN']
+TELTUS_CHAT_ID = environ['TELTUS_CHAT_ID']
 
 try:
     TELTUS_VOICE = environ['TELTUS_VOICE']
@@ -63,11 +64,10 @@ updater = Updater(token=TELTUS_TOKEN)
 dispatcher = updater.dispatcher
 
 class Record:
-    __slots__ = ("message", "chat_id", "user", "bot", "audio")
+    __slots__ = ("message", "user", "bot", "audio")
 
     def __init__(self, bot, update):
         self.message = update.message
-        self.chat_id = self.message.chat_id
         self.user = self.message.from_user
         self.bot = bot
         self.audio = None
@@ -77,7 +77,7 @@ class Record:
         self.audio = self.get_audio(message_text)
 
     def get_audio(self, message_text):
-        self.bot.send_chat_action(chat_id=self.chat_id, action=telegram.ChatAction.RECORD_AUDIO)
+        self.bot.send_chat_action(chat_id=TELTUS_CHAT_ID, action=telegram.ChatAction.RECORD_AUDIO)
 
         return text_to_audio(message_text)
 
@@ -89,12 +89,12 @@ def audioSender(record):
         stream = BytesIO(audioStream.read())
 
         record.bot.send_voice(
-            record.chat_id, stream, 
+            TELTUS_CHAT_ID, stream, 
             reply_to_message_id=record.message.message_id
         )
 
 def start(bot, update):
-    bot.send_message(chat_id=update.message.chat_id, text="Hi! I can talk!")
+    bot.send_message(chat_id=TELTUS_CHAT_ID, text="Hi! I can talk!")
 
 def say(bot, update, args):
     record = Record(bot, update)
