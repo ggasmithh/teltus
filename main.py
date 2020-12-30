@@ -30,18 +30,6 @@ class Record:
         message_text = " ".join(args)
 
         self.audio = self.get_audio(message_text)
-      
-    def set_say(self, args):
-
-        message_text = " ".join(args)
-
-        fullname = " ".join(name for name in (
-            self.user.first_name, self.user.last_name
-            ) if name != None
-        )
-
-        self.audio = self.get_audio(f"{fullname} says, {message_text}")
-
 
     def get_audio(self, message_text):
 
@@ -69,12 +57,6 @@ def audioSender(record):
 def start(bot, update):
     bot.send_message(chat_id=update.message.chat_id, text="Hi! I can talk!")
 
-def say(bot, update, args):
-    record = Record(bot, update)
-    record.set_say(args)
-
-    audioSender(record)
-
 def tts(bot, update, args):
     record = Record(bot, update)
     record.set_tts(args)
@@ -84,9 +66,6 @@ def tts(bot, update, args):
 
 start_handler = CommandHandler('start', start)
 dispatcher.add_handler(start_handler)
-
-say_handler = CommandHandler('say', say, pass_args=True)
-dispatcher.add_handler(say_handler)
 
 tts_handler = CommandHandler('tts', tts, pass_args=True)
 dispatcher.add_handler(tts_handler)
