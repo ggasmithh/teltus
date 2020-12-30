@@ -25,7 +25,7 @@ class Record:
         self.bot = bot
         self.audio = None
 
-    def set_tts(self, args):
+    def set_say(self, args):
 
         message_text = " ".join(args)
 
@@ -57,9 +57,9 @@ def audioSender(record):
 def start(bot, update):
     bot.send_message(chat_id=update.message.chat_id, text="Hi! I can talk!")
 
-def tts(bot, update, args):
+def say(bot, update, args):
     record = Record(bot, update)
-    record.set_tts(args)
+    record.set_say(args)
 
     audioSender(record)
     
@@ -67,8 +67,8 @@ def tts(bot, update, args):
 start_handler = CommandHandler('start', start)
 dispatcher.add_handler(start_handler)
 
-tts_handler = CommandHandler('tts', tts, pass_args=True)
-dispatcher.add_handler(tts_handler)
+say_handler = CommandHandler('say', say, pass_args=True)
+dispatcher.add_handler(say_handler)
 
 updater.start_polling()
 
