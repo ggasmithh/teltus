@@ -5,8 +5,12 @@ from io import BytesIO
 from os import environ
 
 TELTUS_BACKEND = environ['TELTUS_BACKEND']
-TELTUS_VOICE = environ['TELTUS_VOICE']
 TELTUS_TOKEN = environ['TELTUS_TOKEN']
+
+try:
+    TELTUS_VOICE = environ['TELTUS_VOICE']
+except:
+    TELTUS_VOICE = None
 
 # Valid choices of voices for Amazon Polly
 # From https://docs.aws.amazon.com/polly/latest/dg/voicelist.html
