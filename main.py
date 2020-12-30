@@ -67,6 +67,10 @@ def say(update: Update, context: CallbackContext) -> None:
         context.bot.send_chat_action(chat_id=update.effective_message.chat_id, action=ChatAction.RECORD_AUDIO)
         fd, audio_path = text_to_audio(update.message.text)
 
+        # for "debugging"
+        print(audio_path)
+        print(type(audio_path))
+
         if audio_path is not None:
             update.message.reply_audio(audio_path, reply_to_message_id=update.message.message_id)
         if fd is not None:
