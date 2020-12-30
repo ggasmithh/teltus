@@ -61,7 +61,7 @@ def start(update: Update, context: CallbackContext) -> None:
     if update.message.chat_id == TELTUS_CHAT_ID:
         update.message.reply_text("Hi! I can talk!")
 
-def say(update: Update, context: CallbackContext, args) -> None:
+def say(update: Update, context: CallbackContext) -> None:
     if update.message.chat_id == TELTUS_CHAT_ID:
         context.bot.send_chat_action(chat_id=update.effective_message.chat_id, action=ChatAction.RECORD_AUDIO)
         audio = text_to_audio(update.message.text)
@@ -76,7 +76,7 @@ def main():
     updater = Updater(TELTUS_TOKEN, use_context=True)
     dispatcher = updater.dispatcher
     dispatcher.add_handler(CommandHandler('start', start))
-    dispatcher.add_handler(CommandHandler('say', say, pass_args=True))
+    dispatcher.add_handler(CommandHandler('say', say))
 
     updater.start_polling()
 
