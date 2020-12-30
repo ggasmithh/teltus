@@ -1,7 +1,6 @@
 from telegram import ChatAction, Update
 from telegram.ext import CommandHandler, Updater, CallbackContext
 import logging
-from io import BytesIO
 from os import environ
 from tempfile import mkstemp
 
