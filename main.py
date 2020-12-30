@@ -3,6 +3,7 @@ from telegram.ext import CommandHandler, Updater, CallbackContext
 import logging
 from io import BytesIO
 from os import environ
+from tempfile import mkstemp
 
 TELTUS_BACKEND = environ['TELTUS_BACKEND']
 TELTUS_TOKEN = environ['TELTUS_TOKEN']
@@ -42,17 +43,17 @@ if TELTUS_BACKEND == 'polly':
                     OutputFormat='mp3',
                     Text = message_text)
 
-        return polly_response.get("AudioStream")
+        return (None, polly_response.get("AudioStream"))
 
 elif TELTUS_BACKEND == 'gtts':
     from gtts import gTTS
 
     def text_to_audio(message_text: str):
-        fp = BytesIO()
+        fd, path = mkstemp()
         tts = gTTS(message_text, lang='en')
-        tts.write_to_fp(fp)
+        tts.save(path)
 
-        return fp
+        return (fd, path)
 
 else:
     raise Exception('Invalid backend preference!\nValid backends: polly, gtts')
@@ -64,10 +65,13 @@ def start(update: Update, context: CallbackContext) -> None:
 def say(update: Update, context: CallbackContext) -> None:
     if str(update.message.chat_id) == str(TELTUS_CHAT_ID):
         context.bot.send_chat_action(chat_id=update.effective_message.chat_id, action=ChatAction.RECORD_AUDIO)
-        audio = text_to_audio(update.message.text)
+        fd, audio_path = text_to_audio(update.message.text)
 
-        if audio is not None:
+        if audio_path is not None:
             update.message.reply_voice(audio, reply_to_message_id=update.message.message_id)
+        
+        if fd is not None:
+            fd.close()
 
 def main():
     # Set up the telegram interface
