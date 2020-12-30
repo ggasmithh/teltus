@@ -48,7 +48,7 @@ elif TELTUS_BACKEND == 'gtts':
     from gtts import gTTS
 
     def text_to_audio(message_text: str):
-        fd, path = mkstemp()
+        fd, path = mkstemp(suffix = ".mp3")
         tts = gTTS(message_text, lang='en')
         tts.save(path)
 
