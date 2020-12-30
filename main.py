@@ -1,7 +1,7 @@
 from telegram import ChatAction, Update
 from telegram.ext import CommandHandler, Updater, CallbackContext
 import logging
-from os import environ
+from os import environ, remove
 from tempfile import mkstemp
 
 TELTUS_BACKEND = environ['TELTUS_BACKEND']
@@ -42,18 +42,21 @@ if TELTUS_BACKEND == 'polly':
                     OutputFormat='mp3',
                     Text = message_text)
 
-        return (None, polly_response.get("AudioStream"))
+        fd, path = mkstemp()
+        with open(path, 'wb') as f:
+            f.write(polly_response["AudioStream"].read())
+
+        return path
 
 elif TELTUS_BACKEND == 'gtts':
     from gtts import gTTS
-    from pathlib import Path
 
     def text_to_audio(message_text: str):
         fd, path = mkstemp(suffix='.mp3')
         tts = gTTS(message_text, lang='en')
         tts.save(path)
 
-        return (fd, Path(path))
+        return path
 
 else:
     raise Exception('Invalid backend preference!\nValid backends: polly, gtts')
@@ -65,16 +68,14 @@ def start(update: Update, context: CallbackContext) -> None:
 def say(update: Update, context: CallbackContext) -> None:
     if str(update.message.chat_id) == str(TELTUS_CHAT_ID):
         context.bot.send_chat_action(chat_id=update.effective_message.chat_id, action=ChatAction.RECORD_AUDIO)
-        fd, audio_path = text_to_audio(update.message.text)
+        audio_path = text_to_audio(update.message.text)
 
-        # for "debugging"
-        print(audio_path)
-        print(type(audio_path))
+        with open(audio_path, 'rb') as f
+            update.message.reply_voice(f, reply_to_message_id=update.message.message_id)
+        
+        # this is not safe, but...
+        remove(audio_path)
 
-        if audio_path is not None:
-            update.message.reply_audio(audio_path, reply_to_message_id=update.message.message_id)
-        if fd is not None:
-            fd.close()
 
 def main():
     # Set up the telegram interface
