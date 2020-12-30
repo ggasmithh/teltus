@@ -5,14 +5,15 @@ import logging
 from io import BytesIO
 from os import environ
 
-BOT_TOKEN = environ['BOT_TOKEN']
-BOT_VOICE = environ['BOT_VOICE']
+TELTUS_TOKEN = environ['TELTUS_TOKEN']
+TELTUS_VOICE = environ['TELTUS_VOICE']
+TELTUS_BACKEND = environ['TELTUS_BACKEND']
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                      level=logging.INFO)
 
 
-updater = Updater(token=BOT_TOKEN)
+updater = Updater(token=TELTUS_TOKEN)
 dispatcher = updater.dispatcher
 
 class Record:
@@ -37,7 +38,7 @@ class Record:
 
         polly_client = boto3.Session(region_name='us-east-2').client('polly')
 
-        return polly_client.synthesize_speech(VoiceId=BOT_VOICE,
+        return polly_client.synthesize_speech(VoiceId=TELTUS_VOICE,
                     OutputFormat='mp3',
                     Text = message_text)
 
