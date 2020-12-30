@@ -70,7 +70,7 @@ def say(update: Update, context: CallbackContext) -> None:
         context.bot.send_chat_action(chat_id=update.effective_message.chat_id, action=ChatAction.RECORD_AUDIO)
         audio_path = text_to_audio(update.message.text)
 
-        with open(audio_path, 'rb') as f
+        with open(audio_path, 'rb') as f:
             update.message.reply_voice(f, reply_to_message_id=update.message.message_id)
         
         # this is not safe, but...
