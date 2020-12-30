@@ -13,17 +13,7 @@ try:
 except:
     TELTUS_VOICE = None
 
-# Valid choices of voices for Amazon Polly
-# From https://docs.aws.amazon.com/polly/latest/dg/voicelist.html
-POLLY_VOICES = ["Zeina", "Zhiyu", "Naja", "Mads", "Lotte", "Ruben", "Nicole", 
-    "Olivia", "Russell", "Amy", "Emma", "Brian", "Aditi", "Raveena", "Ivy", 
-    "Joanna", "Kendra", "Kimberly", "Salli", "Joey", "Justin", "Kevin", 
-    "Matthew", "Geraint", "Celine", "Léa", "Mathieu", "Chantal", "Marlene", 
-    "Vicki", "Hans", "Aditi", "Dora", "Karl", "Carla", "Bianca", "Giorgio", 
-    "Mizuki", "Takumi", "Seoyeon", "Liv", "Ewa", "Maja", "Jacek", "Jan", 
-    "Camila", "Vitoria", "Ricardo", "Ines", "Cristiano", "Carmen", "Tatyana", 
-    "Maxim", "Conchita", "Lucia", "Enrique", "Mia", "Lupe", "Penelope", "Miguel", 
-    "Astrid", "Filiz", "Gwyneth"]
+
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                      level=logging.INFO)
@@ -31,6 +21,18 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 # Basic setup / sanity checks
 if TELTUS_BACKEND == 'polly':
     import boto3
+
+    # Valid choices of voices for Amazon Polly
+    # From https://docs.aws.amazon.com/polly/latest/dg/voicelist.html
+    POLLY_VOICES = ["Zeina", "Zhiyu", "Naja", "Mads", "Lotte", "Ruben", "Nicole", 
+        "Olivia", "Russell", "Amy", "Emma", "Brian", "Aditi", "Raveena", "Ivy", 
+        "Joanna", "Kendra", "Kimberly", "Salli", "Joey", "Justin", "Kevin", 
+        "Matthew", "Geraint", "Celine", "Léa", "Mathieu", "Chantal", "Marlene", 
+        "Vicki", "Hans", "Aditi", "Dora", "Karl", "Carla", "Bianca", "Giorgio", 
+        "Mizuki", "Takumi", "Seoyeon", "Liv", "Ewa", "Maja", "Jacek", "Jan", 
+        "Camila", "Vitoria", "Ricardo", "Ines", "Cristiano", "Carmen", "Tatyana", 
+        "Maxim", "Conchita", "Lucia", "Enrique", "Mia", "Lupe", "Penelope", "Miguel", 
+        "Astrid", "Filiz", "Gwyneth"]
 
     if TELTUS_VOICE not in POLLY_VOICES:
         raise Exception("Invalid voice selection for Polly Backend!")
@@ -58,10 +60,6 @@ elif TELTUS_BACKEND == 'gtts':
 
 else:
     raise Exception('Invalid backend preference!\nValid backends: polly, gtts')
-
-# Set up the telegram interface
-updater = Updater(token=TELTUS_TOKEN)
-dispatcher = updater.dispatcher
 
 class Record:
     __slots__ = ("message", "user", "bot", "audio")
@@ -94,6 +92,9 @@ def audioSender(record):
             reply_to_message_id=record.message.message_id
         )
 
+# Set up the telegram interface
+updater = Updater(token=TELTUS_TOKEN)
+
 def start(bot, update):
     bot.send_message(chat_id=TELTUS_CHAT_ID, text="Hi! I can talk!")
 
@@ -104,10 +105,10 @@ def say(bot, update, args):
     audioSender(record)
     
 start_handler = CommandHandler('start', start)
-dispatcher.add_handler(start_handler)
+updater.dispatcher.add_handler(start_handler)
 
 say_handler = CommandHandler('say', say, pass_args=True)
-dispatcher.add_handler(say_handler)
+updater.dispatcher.add_handler(say_handler)
 
 updater.start_polling()
 
