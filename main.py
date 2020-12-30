@@ -66,7 +66,7 @@ def say(update: Update, context: CallbackContext) -> None:
         context.bot.send_chat_action(chat_id=update.effective_message.chat_id, action=ChatAction.RECORD_AUDIO)
         audio = text_to_audio(update.message.text)
 
-        if audioStream is not None:
+        if audio is not None:
             stream = BytesIO(audio.read())
 
             reply_voice(stream, reply_to_message_id=update.message.message_id)
