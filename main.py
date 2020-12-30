@@ -68,7 +68,7 @@ def start(update: Update, context: CallbackContext) -> None:
 def say(update: Update, context: CallbackContext) -> None:
     if str(update.message.chat_id) == str(TELTUS_CHAT_ID):
         context.bot.send_chat_action(chat_id=update.effective_message.chat_id, action=ChatAction.RECORD_AUDIO)
-        audio_path = text_to_audio(update.message.text)
+        audio_path = text_to_audio(" ".join(filter(lambda x:x[0]!='/', update.message.text.split())))
 
         with open(audio_path, 'rb') as f:
             update.message.reply_voice(f, reply_to_message_id=update.message.message_id)
