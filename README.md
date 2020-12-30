@@ -1,10 +1,21 @@
-# teltus (NON-FUNCTIONAL)
+# teltus
 teltus is a simple Telegram Text-To-Speech bot. It can use the following as speech synthesis engines:
 * Amazon's Polly engine
 * Google's gTTS engine
 
+The name doesn't mean anything, I just chose it because its sounds like "tell [it] to us"
+
 ## usage
 Before running, teltus must be configured by setting the following environment variables. Additionally, the Boto client needs to be set up.
+
+I usually just run it like this, because I'm too lazy to install ```screen``` or ```tmux```
+
+```
+python3 teltus.py
+ctrl+z
+bg
+disown -h
+```
 
 ### ```TELTUS_BACKEND```
 This should be set either to ```polly``` or ```gtts```, for usage with Polly or gTTS, respectively
