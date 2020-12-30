@@ -1,4 +1,4 @@
-# teltus (NON-FUNCTIONAL)
+# teltus
 teltus is a simple Telegram Text-To-Speech bot. It can use the following as speech synthesis engines:
 * Amazon's Polly engine
 * Google's gTTS engine
