@@ -42,17 +42,18 @@ if TELTUS_BACKEND == 'polly':
                     OutputFormat='mp3',
                     Text = message_text)
 
-        return polly_response.get("AudioStream")
+        return (None, polly_response.get("AudioStream"))
 
 elif TELTUS_BACKEND == 'gtts':
     from gtts import gTTS
+    from pathlib import Path
 
     def text_to_audio(message_text: str):
-        fd, path = mkstemp()
+        fd, path = mkstemp(suffix='.mp3')
         tts = gTTS(message_text, lang='en')
         tts.save(path)
 
-        return fd
+        return (fd, Path(path))
 
 else:
     raise Exception('Invalid backend preference!\nValid backends: polly, gtts')
@@ -64,10 +65,11 @@ def start(update: Update, context: CallbackContext) -> None:
 def say(update: Update, context: CallbackContext) -> None:
     if str(update.message.chat_id) == str(TELTUS_CHAT_ID):
         context.bot.send_chat_action(chat_id=update.effective_message.chat_id, action=ChatAction.RECORD_AUDIO)
-        fd = text_to_audio(update.message.text)
+        fd, audio_path = text_to_audio(update.message.text)
 
+        if audio_path is not None:
+            update.message.reply_audio(audio_path, reply_to_message_id=update.message.message_id)
         if fd is not None:
-            update.message.reply_audio(fd, reply_to_message_id=update.message.message_id)
             fd.close()
 
 def main():
