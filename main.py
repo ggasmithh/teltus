@@ -67,6 +67,7 @@ class Record:
     __slots__ = ("message", "user", "bot", "audio")
 
     def __init__(self, bot, update):
+        self.chat_id = TELTUS_CHAT_ID
         self.message = update.message
         self.user = self.message.from_user
         self.bot = bot
@@ -77,7 +78,7 @@ class Record:
         self.audio = self.get_audio(message_text)
 
     def get_audio(self, message_text):
-        self.bot.send_chat_action(chat_id=TELTUS_CHAT_ID, action=telegram.ChatAction.RECORD_AUDIO)
+        self.bot.send_chat_action(chat_id=self.chat_id, action=telegram.ChatAction.RECORD_AUDIO)
 
         return text_to_audio(message_text)
 
