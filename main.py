@@ -67,9 +67,7 @@ def say(update: Update, context: CallbackContext) -> None:
         audio = text_to_audio(update.message.text)
 
         if audio is not None:
-            stream = BytesIO(audio.read())
-
-            update.message.reply_voice(stream, reply_to_message_id=update.message.message_id)
+            update.message.reply_voice(audio, reply_to_message_id=update.message.message_id)
 
 def main():
     # Set up the telegram interface
