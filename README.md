@@ -15,10 +15,6 @@ For now, voice selection is only supported with the Polly engine. Valid selectio
 ### ```TELTUS_TOKEN```
 Your telegram bot token goes here. Get it from BotFather on telegram.
 
-### ```GOOGLE_APPLICATION_CREDENTIALS```
-https://cloud.google.com/text-to-speech/docs/quickstart-client-libraries
-
-
 ---
 
 under no circumstances should you use this in your telegram group.
