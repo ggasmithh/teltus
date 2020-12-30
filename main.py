@@ -1,4 +1,4 @@
-import telegram
+from telegram import ChatAction, Update
 from telegram.ext import CommandHandler, Updater
 import logging
 from io import BytesIO
@@ -63,7 +63,7 @@ def start(update: Update, context: CallbackContext) -> None:
 
 def say(update: Update, context: CallbackContext, args) -> None:
     if update.message.chat_id == TELTUS_CHAT_ID:
-        context.bot.send_chat_action(chat_id=update.effective_message.chat_id, action=telegram.ChatAction.RECORD_AUDIO)
+        context.bot.send_chat_action(chat_id=update.effective_message.chat_id, action=ChatAction.RECORD_AUDIO)
         audio = text_to_audio(update.message.text)
 
         if audioStream is not None:
