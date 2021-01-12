@@ -11,7 +11,7 @@ Before running, teltus must be configured by setting the following environment v
 I usually just run it like this, because I'm too lazy to install ```screen``` or ```tmux```
 
 ```
-python3 teltus.py
+python3 main.py
 ctrl+z
 bg
 disown -h
